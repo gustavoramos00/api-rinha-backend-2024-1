@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record Extrato(
 	Saldo saldo,
-	@JsonProperty("ultimas_transacoes")	List<Transacao> ultimasTransacoes) {
+	@JsonProperty("ultimas_transacoes")	List<TransacaoConta> ultimasTransacoes) {
 	
 	public static record Saldo(
 		Integer total,

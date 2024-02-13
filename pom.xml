@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.backend.rinha</groupId>
 	<artifactId>rinha-2024-q1</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<packaging>jar</packaging>
 	<name>rinha-2024-q1</name>
 	<description>Demo project for Spring Boot</description>
@@ -58,6 +58,7 @@
 					<classifier>${repackage.classifier}</classifier>
 					<image>
 						<builder>paketobuildpacks/builder-jammy-tiny:latest</builder>
+						<name>gustavoramos00/${project.artifactId}:${project.version}</name>
 					</image>
 				</configuration>
 			</plugin>

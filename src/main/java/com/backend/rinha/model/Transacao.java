@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record Transacao(
 	@JsonIgnore Integer id,
-	String valor,
+	Integer valor,
 	String tipo,
 	String descricao,
 	@JsonProperty("realizada_em") Instant realizadaEm) {
@@ -19,13 +19,12 @@ public record Transacao(
 	@JsonIgnore
 	public int getValorReal() {
 		return "c".equals(tipo) ? 
-				Integer.valueOf(valor) : - Integer.valueOf(valor);
+				valor : - valor;
 	}
 	
 	public void validarTransacao() {
 		if (valor == null || 
-				valor.isEmpty() ||
-				Integer.parseInt(valor) <= 0 ||
+				valor <= 0 ||
 				descricao == null || 
 				descricao.isEmpty() ||
 				descricao.length() > 10 ||
@@ -35,10 +34,6 @@ public record Transacao(
 		}
 	}
 
-	public Integer valorInt() {
-		return Integer.valueOf(valor);
-	}
-	
 	public static record SaldoAposTransacao(
 		Integer saldo,
 		Integer limite) {}

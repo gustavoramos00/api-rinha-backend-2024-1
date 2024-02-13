@@ -1,12 +1,12 @@
 ### API Extrato
-GET http://localhost:3000/clientes/1/extrato
+GET http://localhost:9999/clientes/1/extrato
 
 ### API Transacao
 POST http://localhost:3000/clientes/1/transacoes
 Content-Type: application/json
 
 {
-    "valor": 10,
+    "valor": 10.1,
     "tipo" : "d",
     "descricao" : "teste"
 }

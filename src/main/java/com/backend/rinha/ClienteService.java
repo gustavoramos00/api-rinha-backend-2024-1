@@ -35,15 +35,12 @@ public class ClienteService {
 		}
 		final var data = Instant.now();
 		final var saldo = new Extrato.Saldo(valorSaldo, data, limite);
-		final var ultimasTransacoes = transacoes.stream().map(t -> t.transacao()).toList();
-		return new Extrato(saldo, ultimasTransacoes);
+		return new Extrato(saldo, transacoes);
 	}
 
 	public SaldoAposTransacao processarTransacao(Integer clienteId, Transacao transacao) {
 		transacao.validarTransacao();
-		final var saldoAposTransacao = repo.atualizaConta(clienteId, transacao.getValorReal());
-		repo.insereTransacao(clienteId, transacao);
-		return saldoAposTransacao;
+		return repo.processarTransacao(clienteId, transacao);
 	}
 
 }

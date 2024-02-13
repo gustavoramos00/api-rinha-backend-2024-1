@@ -2,6 +2,7 @@ package com.backend.rinha;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,4 +42,11 @@ public class ClienteController {
     public ResponseEntity<Void> handle(NumberFormatException ex) {
 		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
     }
+	
+
+	@ExceptionHandler 
+    public ResponseEntity<Void> handleJsonException(HttpMessageNotReadableException ex) {
+		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+    }
+	
 }

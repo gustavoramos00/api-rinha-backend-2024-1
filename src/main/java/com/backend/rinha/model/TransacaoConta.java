@@ -6,18 +6,17 @@ import java.time.Instant;
 
 import org.springframework.jdbc.core.RowMapper;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record TransacaoConta(
-	Integer id,
-	Integer valor,
-	String tipo,
-	String descricao,
-	Instant realizadaEm,
-	Integer saldo,
-	Integer limite) {
-	
-	public Transacao transacao() {
-		return new Transacao(id, valor.toString(), tipo, descricao, realizadaEm);
-	}
+		@JsonIgnore Integer id,
+		Integer valor,
+		String tipo,
+		String descricao,
+		@JsonProperty("realizada_em") Instant realizadaEm,
+		@JsonIgnore Integer saldo,
+		@JsonIgnore Integer limite) {
 	
 	public static class CustomRowMapper implements RowMapper<TransacaoConta> {
 

@@ -2,7 +2,6 @@ package com.backend.rinha.model;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
 
 import org.springframework.jdbc.core.RowMapper;
 

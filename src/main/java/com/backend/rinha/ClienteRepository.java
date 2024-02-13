@@ -88,19 +88,26 @@ public class ClienteRepository {
 				new TransacaoConta.CustomRowMapper());
 	}
 
-	@Transactional
-	public void insereTransacao(Integer clienteId, Transacao transacao) {
+    @Transactional
+	public SaldoAposTransacao processarTransacao(Integer clienteId, Transacao transacao) {
+		final var saldoAposTransacao = atualizaConta(clienteId, transacao.getValorReal());
+		insereTransacao(clienteId, transacao);
+		return saldoAposTransacao;
+	}
+
+	private void insereTransacao(Integer clienteId, Transacao transacao) {
 		SqlParameterSource paramsInsert = new MapSqlParameterSource(
 				Map.of("cliente_id", clienteId,
-				"valor", transacao.valorInt(),
+				"valor", transacao.valor(),
 				"tipo", transacao.tipo(),
 				"descricao", transacao.descricao(),
 				"realizada_em", Timestamp.from(Instant.now())));
 		jdbcTemplate.update(QUERY_INSERT_TRANSACAO, paramsInsert);
 	}
 
-	@Transactional
-	public SaldoAposTransacao atualizaConta(Integer clienteId, int valor) {
+
+	
+	private SaldoAposTransacao atualizaConta(Integer clienteId, int valor) {
 		SqlParameterSource paramsUpdate = new MapSqlParameterSource(
 				Map.of("cliente_id", clienteId,
 				"valor", valor));
