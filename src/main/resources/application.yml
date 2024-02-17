@@ -13,3 +13,4 @@ spring:
     password: 123
     hikari:
       pool-name: rinha-backend
+      initializationFailTimeout: 40000 

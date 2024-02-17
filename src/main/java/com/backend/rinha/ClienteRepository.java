@@ -6,16 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.namedparam.EmptySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.backend.rinha.model.Conta;
 import com.backend.rinha.model.Transacao;
@@ -23,7 +20,6 @@ import com.backend.rinha.model.Transacao.SaldoAposTransacao;
 import com.backend.rinha.model.TransacaoConta;
 
 @Repository
-@Transactional(readOnly = true)
 public class ClienteRepository {
 	
 	private NamedParameterJdbcTemplate jdbcTemplate;
@@ -61,23 +57,24 @@ public class ClienteRepository {
 			update conta
 			set saldo = saldo + :valor
 			where cliente_id = :cliente_id
+			  and saldo + :valor + limite > 0
 			""";
 	private static final String QUERY_INSERT_TRANSACAO = """
 			insert into transacao (cliente_id, valor, tipo, descricao, realizada_em)
 			 values (:cliente_id, :valor, :tipo, :descricao, :realizada_em)
 			""";
-	
-	public Optional<Conta> consultaContaCliente(Integer clienteId) {
-		SqlParameterSource params = new MapSqlParameterSource("cliente_id", clienteId);
-		try {
-			final var conta = jdbcTemplate.queryForObject(
-					QUERY_CONTA_CLIENTE,
-					params,
-					new Conta.CustomRowMapper());
-			return Optional.of(conta);
-		} catch (EmptyResultDataAccessException ex) {
-			return Optional.empty();
-		}
+	private static final String QUERY_CLIENTES = """
+			select 
+				id
+			from cliente
+			""";
+
+	public Conta consultaContaCliente(Integer clienteId) {
+	SqlParameterSource params = new MapSqlParameterSource("cliente_id", clienteId);
+		return jdbcTemplate.queryForObject(
+				QUERY_CONTA_CLIENTE,
+				params,
+				new Conta.CustomRowMapper());
 	}
 
 	public List<TransacaoConta> consultaTransacoesConta(Integer clienteId) {
@@ -88,14 +85,7 @@ public class ClienteRepository {
 				new TransacaoConta.CustomRowMapper());
 	}
 
-    @Transactional
-	public SaldoAposTransacao processarTransacao(Integer clienteId, Transacao transacao) {
-		final var saldoAposTransacao = atualizaConta(clienteId, transacao.getValorReal());
-		insereTransacao(clienteId, transacao);
-		return saldoAposTransacao;
-	}
-
-	private void insereTransacao(Integer clienteId, Transacao transacao) {
+	public void insereTransacao(Integer clienteId, Transacao transacao) {
 		SqlParameterSource paramsInsert = new MapSqlParameterSource(
 				Map.of("cliente_id", clienteId,
 				"valor", transacao.valor(),
@@ -105,9 +95,7 @@ public class ClienteRepository {
 		jdbcTemplate.update(QUERY_INSERT_TRANSACAO, paramsInsert);
 	}
 
-
-	
-	private SaldoAposTransacao atualizaConta(Integer clienteId, int valor) {
+	public Optional<SaldoAposTransacao> atualizaConta(Integer clienteId, int valor) {
 		SqlParameterSource paramsUpdate = new MapSqlParameterSource(
 				Map.of("cliente_id", clienteId,
 				"valor", valor));
@@ -115,15 +103,18 @@ public class ClienteRepository {
 		String[] columnNames = {"saldo", "limite"};
 		jdbcTemplate.update(QUERY_UPDATE_CONTA, paramsUpdate, keyHolder, columnNames);
 		if (keyHolder.getKeys() == null || keyHolder.getKeys().isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+			return Optional.empty();
 		} else {
 			final var saldo = (Integer) keyHolder.getKeys().get("saldo");
 			final var limite = (Integer) keyHolder.getKeys().get("limite");
-			if (saldo < -limite) {
-				throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
-			} else {
-				return new SaldoAposTransacao(saldo, limite);				
-			}
+			return Optional.of(new SaldoAposTransacao(saldo, limite));
 		}
+	}
+
+	public List<Integer> getClientes() {
+		return jdbcTemplate.queryForList(
+				QUERY_CLIENTES,
+				new EmptySqlParameterSource(),
+				Integer.class);
 	}
 }
